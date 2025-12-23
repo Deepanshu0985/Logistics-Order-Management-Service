@@ -85,7 +85,7 @@ function App() {
           className="mt-12 text-center text-[#64748b] text-sm"
         >
           <p>
-            Built with ❤️ for efficient logistics management
+            <Link href="https://github.com/deepanshuyadav/logistics">Github</Link>
           </p>
         </motion.footer>
       </div>
