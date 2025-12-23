@@ -1,4 +1,4 @@
-package main.java.com.logistics.ordermanagement.service;
+package com.logistics.ordermanagement.service;
 
 import com.logistics.ordermanagement.dto.request.AssignPartnerRequest;
 import com.logistics.ordermanagement.dto.request.CreateOrderRequest;

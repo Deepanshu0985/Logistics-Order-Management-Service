@@ -1,4 +1,4 @@
-package main.java.com.logistics.ordermanagement.dto.response;
+package com.logistics.ordermanagement.dto.response;
 
 import com.logistics.ordermanagement.enums.PartnerStatus;
 import lombok.AllArgsConstructor;

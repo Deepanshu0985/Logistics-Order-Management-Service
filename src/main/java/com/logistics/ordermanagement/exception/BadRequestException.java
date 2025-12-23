@@ -1,4 +1,4 @@
-package main.java.com.logistics.ordermanagement.exception;
+package com.logistics.ordermanagement.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

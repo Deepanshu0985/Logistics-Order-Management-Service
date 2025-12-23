@@ -1,4 +1,4 @@
-package main.java.com.logistics.ordermanagement.entity;
+package com.logistics.ordermanagement.entity;
 
 import com.logistics.ordermanagement.enums.PartnerStatus;
 import jakarta.persistence.*;
