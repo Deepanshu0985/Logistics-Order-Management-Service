@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Package, Truck, LayoutDashboard, Sparkles } from "lucide-react";
 import OrdersPage from "./pages/OrdersPage";
 import PartnersPage from "./pages/PartnersPage";
-
 function App() {
   const [tab, setTab] = useState("orders");
   const [mounted, setMounted] = useState(false);
@@ -85,7 +84,7 @@ function App() {
           className="mt-12 text-center text-[#64748b] text-sm"
         >
           <p>
-            <Link href="https://github.com/deepanshuyadav/logistics">Github</Link>
+            <a href="https://github.com/Deepanshu0985">Github</a>
           </p>
         </motion.footer>
       </div>
