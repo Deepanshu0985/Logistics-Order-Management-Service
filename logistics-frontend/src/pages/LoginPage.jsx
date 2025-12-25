@@ -75,7 +75,7 @@ function LoginPage({ onSwitchToRegister }) {
                                     value={formData.email}
                                     onChange={handleChange}
                                     className="input pl-11 w-full"
-                                    placeholder="Enter your email"
+                                    placeholder="       Enter your email"
                                     required
                                 />
                             </div>
@@ -91,7 +91,7 @@ function LoginPage({ onSwitchToRegister }) {
                                     value={formData.password}
                                     onChange={handleChange}
                                     className="input pl-11 w-full"
-                                    placeholder="Enter your password"
+                                    placeholder="       Enter your password"
                                     required
                                 />
                             </div>

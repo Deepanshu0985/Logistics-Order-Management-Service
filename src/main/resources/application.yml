@@ -5,18 +5,12 @@ spring:
   application:
     name: order-management
   
-  # Database Configuration - Using H2 for local development
+  # Database Configuration - Neon PostgreSQL
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:logistics_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
-    username: ${SPRING_DATASOURCE_USERNAME:sa}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
-    driver-class-name: ${SPRING_DATASOURCE_DRIVER:org.h2.Driver}
-  
-  # H2 Console (for development)
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://ep-super-wildflower-adhdau9g-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require}
+    username: ${SPRING_DATASOURCE_USERNAME:neondb_owner}
+    password: ${SPRING_DATASOURCE_PASSWORD:npg_rZkUOpySM0h4}
+    driver-class-name: org.postgresql.Driver
   
   jpa:
     hibernate:
@@ -25,7 +19,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 # JWT Configuration
 jwt:
