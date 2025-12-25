@@ -33,4 +33,7 @@ public class CreateOrderRequest {
     @NotBlank(message = "City is required")
     @Size(min = 2, max = 50, message = "City must be between 2 and 50 characters")
     private String city;
+
+    // Optional: automatically assign an available delivery partner
+    private Boolean autoAssign = false;
 }

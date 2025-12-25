@@ -5,7 +5,8 @@ import {
   PackageCheck,
   CircleDot,
   UserX,
-  Zap
+  Zap,
+  XCircle
 } from "lucide-react";
 
 const STATUS_CONFIG = {
@@ -29,6 +30,11 @@ const STATUS_CONFIG = {
     icon: PackageCheck,
     className: "badge-delivered",
     label: "Delivered"
+  },
+  CANCELLED: {
+    icon: XCircle,
+    className: "badge-cancelled",
+    label: "Cancelled"
   },
   // Partner statuses
   AVAILABLE: {

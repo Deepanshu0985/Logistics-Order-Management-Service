@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Package, User, Phone, MapPin, Building2, Loader2 } from "lucide-react";
+import { X, Package, User, Phone, MapPin, Building2, Loader2, Zap } from "lucide-react";
 import { createOrder } from "../api/orders.api";
 
 function CreateOrderModal({ onClose, onSuccess }) {
@@ -12,6 +12,7 @@ function CreateOrderModal({ onClose, onSuccess }) {
         pickupAddress: "",
         deliveryAddress: "",
         city: "",
+        autoAssign: false
     });
 
     const handleChange = (e) => {
@@ -172,6 +173,29 @@ function CreateOrderModal({ onClose, onSuccess }) {
                                 required
                                 rows={2}
                             />
+                        </div>
+
+                        {/* Auto-Assign Toggle */}
+                        <div className="form-group">
+                            <label className="flex items-center gap-3 cursor-pointer p-4 rounded-lg border border-[#334155] bg-[#1e293b]/50 hover:bg-[#1e293b] transition-colors">
+                                <input
+                                    type="checkbox"
+                                    name="autoAssign"
+                                    checked={formData.autoAssign}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, autoAssign: e.target.checked }))}
+                                    className="sr-only peer"
+                                />
+                                <div className="relative w-11 h-6 bg-[#334155] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#6366f1]"></div>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 text-white font-medium">
+                                        <Zap className="w-4 h-4 text-[#f59e0b]" />
+                                        Auto-Assign Partner
+                                    </div>
+                                    <p className="text-xs text-[#64748b] mt-1">
+                                        Automatically assign an available delivery partner
+                                    </p>
+                                </div>
+                            </label>
                         </div>
 
                         {/* Actions */}

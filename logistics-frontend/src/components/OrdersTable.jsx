@@ -7,15 +7,23 @@ import {
   UserPlus,
   PackageCheck,
   Truck,
-  Loader2
+  Loader2,
+  Clock,
+  XCircle,
+  MoreHorizontal
 } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import AssignPartnerModal from "./AssignPartnerModal";
+import OrderHistoryModal from "./OrderHistoryModal";
+import CancelOrderModal from "./CancelOrderModal";
 import { updateOrderStatus } from "../api/orders.api";
 
 function OrdersTable({ orders, onRefresh }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [historyOrder, setHistoryOrder] = useState(null);
+  const [cancelOrder, setCancelOrder] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(null);
 
   const handleStatusChange = async (orderId, status) => {
     setUpdatingId(orderId);
@@ -27,6 +35,10 @@ function OrdersTable({ orders, onRefresh }) {
     } finally {
       setUpdatingId(null);
     }
+  };
+
+  const toggleMenu = (orderId) => {
+    setMenuOpen(menuOpen === orderId ? null : orderId);
   };
 
   return (
@@ -139,6 +151,55 @@ function OrdersTable({ orders, onRefresh }) {
                         Completed
                       </span>
                     )}
+
+                    {order.status === "CANCELLED" && (
+                      <span className="text-[#ef4444] text-sm font-medium flex items-center gap-1">
+                        <XCircle className="w-4 h-4" />
+                        Cancelled
+                      </span>
+                    )}
+
+                    {/* More Actions Menu */}
+                    <div className="relative">
+                      <button
+                        className="btn btn-secondary btn-sm p-2"
+                        onClick={() => toggleMenu(order.id)}
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
+
+                      {menuOpen === order.id && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          className="absolute right-0 top-full mt-1 bg-[#1e293b] border border-[#334155] rounded-lg shadow-xl z-20 min-w-[140px] overflow-hidden"
+                        >
+                          <button
+                            className="w-full px-4 py-2 text-left text-sm text-[#94a3b8] hover:bg-[#334155] hover:text-white transition-colors flex items-center gap-2"
+                            onClick={() => {
+                              setHistoryOrder(order);
+                              setMenuOpen(null);
+                            }}
+                          >
+                            <Clock className="w-4 h-4" />
+                            View History
+                          </button>
+
+                          {order.status !== "DELIVERED" && order.status !== "CANCELLED" && (
+                            <button
+                              className="w-full px-4 py-2 text-left text-sm text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors flex items-center gap-2"
+                              onClick={() => {
+                                setCancelOrder(order);
+                                setMenuOpen(null);
+                              }}
+                            >
+                              <XCircle className="w-4 h-4" />
+                              Cancel Order
+                            </button>
+                          )}
+                        </motion.div>
+                      )}
+                    </div>
                   </div>
                 </td>
               </motion.tr>
@@ -147,11 +208,37 @@ function OrdersTable({ orders, onRefresh }) {
         </table>
       </div>
 
+      {/* Click outside to close menu */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-10"
+          onClick={() => setMenuOpen(null)}
+        />
+      )}
+
       {/* Assign Partner Modal */}
       {selectedOrder && (
         <AssignPartnerModal
           order={selectedOrder}
           onClose={() => setSelectedOrder(null)}
+          onSuccess={onRefresh}
+        />
+      )}
+
+      {/* History Modal */}
+      {historyOrder && (
+        <OrderHistoryModal
+          orderId={historyOrder.id}
+          orderNumber={historyOrder.orderNumber}
+          onClose={() => setHistoryOrder(null)}
+        />
+      )}
+
+      {/* Cancel Order Modal */}
+      {cancelOrder && (
+        <CancelOrderModal
+          order={cancelOrder}
+          onClose={() => setCancelOrder(null)}
           onSuccess={onRefresh}
         />
       )}

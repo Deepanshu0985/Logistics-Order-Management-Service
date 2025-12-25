@@ -1,11 +1,15 @@
 package com.logistics.ordermanagement.service;
 
 import com.logistics.ordermanagement.dto.request.AssignPartnerRequest;
+import com.logistics.ordermanagement.dto.request.CancelOrderRequest;
 import com.logistics.ordermanagement.dto.request.CreateOrderRequest;
 import com.logistics.ordermanagement.dto.request.UpdateOrderStatusRequest;
+import com.logistics.ordermanagement.dto.response.OrderAuditLogResponse;
 import com.logistics.ordermanagement.dto.response.OrderResponse;
 import com.logistics.ordermanagement.dto.response.PagedResponse;
 import com.logistics.ordermanagement.enums.OrderStatus;
+
+import java.util.List;
 
 public interface OrderService {
 
@@ -26,4 +30,8 @@ public interface OrderService {
     OrderResponse updateOrderStatus(Long id, UpdateOrderStatusRequest request);
 
     OrderResponse assignDeliveryPartner(Long id, AssignPartnerRequest request);
+
+    OrderResponse cancelOrder(Long id, CancelOrderRequest request);
+
+    List<OrderAuditLogResponse> getOrderHistory(Long id);
 }

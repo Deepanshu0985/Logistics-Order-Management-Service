@@ -23,6 +23,8 @@ public class OrderResponse {
     private String city;
     private OrderStatus status;
     private DeliveryPartnerResponse deliveryPartner;
+    private String cancellationReason;
+    private LocalDateTime cancelledAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

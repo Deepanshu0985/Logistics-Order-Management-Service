@@ -25,3 +25,13 @@ export const assignPartner = (orderId, partnerId) => {
 export const updateOrderStatus = (orderId, status) => {
   return api.put(`/orders/${orderId}/status`, { status });
 };
+
+// New: Cancel order
+export const cancelOrder = (orderId, reason) => {
+  return api.put(`/orders/${orderId}/cancel`, { reason });
+};
+
+// New: Get order history/audit logs
+export const fetchOrderHistory = (orderId) => {
+  return api.get(`/orders/${orderId}/history`);
+};

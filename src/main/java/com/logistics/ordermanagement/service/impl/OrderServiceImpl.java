@@ -1,9 +1,11 @@
 package com.logistics.ordermanagement.service.impl;
 
 import com.logistics.ordermanagement.dto.request.AssignPartnerRequest;
+import com.logistics.ordermanagement.dto.request.CancelOrderRequest;
 import com.logistics.ordermanagement.dto.request.CreateOrderRequest;
 import com.logistics.ordermanagement.dto.request.UpdateOrderStatusRequest;
 import com.logistics.ordermanagement.dto.response.DeliveryPartnerResponse;
+import com.logistics.ordermanagement.dto.response.OrderAuditLogResponse;
 import com.logistics.ordermanagement.dto.response.OrderResponse;
 import com.logistics.ordermanagement.dto.response.PagedResponse;
 import com.logistics.ordermanagement.entity.DeliveryPartner;
@@ -15,6 +17,9 @@ import com.logistics.ordermanagement.exception.InvalidStatusTransitionException;
 import com.logistics.ordermanagement.exception.ResourceNotFoundException;
 import com.logistics.ordermanagement.repository.DeliveryPartnerRepository;
 import com.logistics.ordermanagement.repository.OrderRepository;
+import com.logistics.ordermanagement.service.AssignmentService;
+import com.logistics.ordermanagement.service.AuditService;
+import com.logistics.ordermanagement.service.NotificationService;
 import com.logistics.ordermanagement.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +30,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -34,6 +41,9 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final DeliveryPartnerRepository deliveryPartnerRepository;
+    private final AuditService auditService;
+    private final NotificationService notificationService;
+    private final AssignmentService assignmentService;
 
     @Override
     @Transactional
@@ -51,8 +61,21 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         Order savedOrder = orderRepository.save(order);
-        log.info("Order created successfully with order number: {}", savedOrder.getOrderNumber());
 
+        // Log audit
+        auditService.logOrderCreated(savedOrder);
+
+        // Send WebSocket notification
+        notificationService.notifyOrderCreated(savedOrder);
+
+        // Auto-assign if requested
+        if (Boolean.TRUE.equals(request.getAutoAssign())) {
+            assignmentService.autoAssignPartner(savedOrder);
+            // Refresh the order to get updated state
+            savedOrder = orderRepository.findById(savedOrder.getId()).orElse(savedOrder);
+        }
+
+        log.info("Order created successfully with order number: {}", savedOrder.getOrderNumber());
         return mapToOrderResponse(savedOrder);
     }
 
@@ -118,6 +141,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", id));
 
+        String oldStatus = order.getStatus().name();
         validateStatusTransition(order.getStatus(), request.getStatus());
 
         order.setStatus(request.getStatus());
@@ -129,8 +153,14 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order updatedOrder = orderRepository.save(order);
-        log.info("Order status updated successfully for order number: {}", updatedOrder.getOrderNumber());
 
+        // Log audit
+        auditService.logStatusChange(updatedOrder, oldStatus, request.getStatus().name());
+
+        // Send WebSocket notification
+        notificationService.notifyStatusChange(updatedOrder, oldStatus, request.getStatus().name());
+
+        log.info("Order status updated successfully for order number: {}", updatedOrder.getOrderNumber());
         return mapToOrderResponse(updatedOrder);
     }
 
@@ -155,6 +185,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // Assign partner and update statuses
+        String oldStatus = order.getStatus().name();
         order.setDeliveryPartner(partner);
         order.setStatus(OrderStatus.ASSIGNED);
         partner.setStatus(PartnerStatus.BUSY);
@@ -162,17 +193,75 @@ public class OrderServiceImpl implements OrderService {
         deliveryPartnerRepository.save(partner);
         Order updatedOrder = orderRepository.save(order);
 
-        log.info("Delivery partner {} assigned to order {} successfully", partner.getName(), order.getOrderNumber());
+        // Log audit
+        auditService.logPartnerAssigned(updatedOrder, partner.getName(), partner.getId());
+        auditService.logStatusChange(updatedOrder, oldStatus, OrderStatus.ASSIGNED.name());
 
+        // Send WebSocket notification
+        notificationService.notifyPartnerAssigned(updatedOrder, partner.getName());
+
+        log.info("Delivery partner {} assigned to order {} successfully", partner.getName(), order.getOrderNumber());
         return mapToOrderResponse(updatedOrder);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse cancelOrder(Long id, CancelOrderRequest request) {
+        log.info("Cancelling order id: {} with reason: {}", id, request.getReason());
+
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", id));
+
+        if (order.getStatus() == OrderStatus.DELIVERED) {
+            throw new BadRequestException("Cannot cancel a delivered order");
+        }
+
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new BadRequestException("Order is already cancelled");
+        }
+
+        // If order was assigned, release the partner
+        if (order.getDeliveryPartner() != null) {
+            order.getDeliveryPartner().setStatus(PartnerStatus.AVAILABLE);
+            deliveryPartnerRepository.save(order.getDeliveryPartner());
+        }
+
+        // Log audit before status change
+        auditService.logOrderCancelled(order, request.getReason());
+
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setCancellationReason(request.getReason());
+        order.setCancelledAt(LocalDateTime.now());
+
+        Order cancelledOrder = orderRepository.save(order);
+
+        // Send WebSocket notification
+        notificationService.notifyOrderCancelled(cancelledOrder, request.getReason());
+
+        log.info("Order {} cancelled successfully", order.getOrderNumber());
+        return mapToOrderResponse(cancelledOrder);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderAuditLogResponse> getOrderHistory(Long id) {
+        log.debug("Fetching order history for order id: {}", id);
+
+        // Verify order exists
+        if (!orderRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Order", "id", id);
+        }
+
+        return auditService.getOrderHistory(id);
     }
 
     private void validateStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
         boolean isValid = switch (currentStatus) {
-            case PLACED -> newStatus == OrderStatus.ASSIGNED;
-            case ASSIGNED -> newStatus == OrderStatus.PICKED;
-            case PICKED -> newStatus == OrderStatus.DELIVERED;
+            case PLACED -> newStatus == OrderStatus.ASSIGNED || newStatus == OrderStatus.CANCELLED;
+            case ASSIGNED -> newStatus == OrderStatus.PICKED || newStatus == OrderStatus.CANCELLED;
+            case PICKED -> newStatus == OrderStatus.DELIVERED || newStatus == OrderStatus.CANCELLED;
             case DELIVERED -> false; // Cannot transition from DELIVERED
+            case CANCELLED -> false; // Cannot transition from CANCELLED
         };
 
         if (!isValid) {
@@ -213,6 +302,8 @@ public class OrderServiceImpl implements OrderService {
                 .city(order.getCity())
                 .status(order.getStatus())
                 .deliveryPartner(partnerResponse)
+                .cancellationReason(order.getCancellationReason())
+                .cancelledAt(order.getCancelledAt())
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .build();
