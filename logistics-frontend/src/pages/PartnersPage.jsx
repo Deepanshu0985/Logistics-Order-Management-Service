@@ -147,7 +147,7 @@ function PartnersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748b]" />
             <input
               type="text"
-              placeholder="Filter by city..."
+              placeholder="   Filter by city..."
               value={city}
               onChange={(e) => {
                 setCity(e.target.value);

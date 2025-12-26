@@ -126,7 +126,7 @@ function CreatePartnerModal({ onClose, onSuccess }) {
                                     value={formData.phone}
                                     onChange={handleChange}
                                     className="input"
-                                    placeholder="9876543210"
+                                    placeholder="    9876543210"
                                     required
                                     pattern="[0-9]{10}"
                                     title="Please enter a 10-digit phone number"
@@ -145,7 +145,7 @@ function CreatePartnerModal({ onClose, onSuccess }) {
                                 value={formData.email}
                                 onChange={handleChange}
                                 className="input"
-                                placeholder="rahul@example.com"
+                                placeholder="    rahul@example.com"
                             />
                         </div>
 
@@ -161,7 +161,7 @@ function CreatePartnerModal({ onClose, onSuccess }) {
                                     value={formData.city}
                                     onChange={handleChange}
                                     className="input"
-                                    placeholder="Mumbai"
+                                    placeholder="   Mumbai"
                                     required
                                 />
                             </div>

@@ -83,7 +83,7 @@ function RegisterPage({ onSwitchToLogin }) {
                                     value={formData.name}
                                     onChange={handleChange}
                                     className="input pl-11 w-full"
-                                    placeholder="Enter your name"
+                                    placeholder="    Enter your name"
                                     required
                                     minLength={2}
                                 />
@@ -100,7 +100,7 @@ function RegisterPage({ onSwitchToLogin }) {
                                     value={formData.email}
                                     onChange={handleChange}
                                     className="input pl-11 w-full"
-                                    placeholder="Enter your email"
+                                    placeholder="    Enter your email"
                                     required
                                 />
                             </div>
@@ -116,7 +116,7 @@ function RegisterPage({ onSwitchToLogin }) {
                                     value={formData.password}
                                     onChange={handleChange}
                                     className="input pl-11 w-full"
-                                    placeholder="Min 6 characters"
+                                    placeholder="    Min 6 characters"
                                     required
                                     minLength={6}
                                 />
